@@ -44,7 +44,7 @@ def PEDESTAL():
     info_pedestal = {}
     hist_list = [] 
 
-    pedestal_data = Path("/content/drive/MyDrive/tesi_swgo_2025/tesi-pmt-gain_characterization/data/batch_3/pedestal_characterisation/2025_04_09/acq_1/daq_2025_04_09_17_14_pedestal.csv")   
+    pedestal_data = Path("/content/drive/MyDrive/tesi_swgo_2025/tesi-pmt-gain_characterization/data/batch_3/pedestal_characterisation/2025_04_09/acq_1")   
     print(pedestal_data)                     
 
     fit_ped = ROOT.TF1("f", "gaus", 875, 895, 3)                      
@@ -133,7 +133,7 @@ def SPE(pedestal_values):
 
 
 
-    spe_data_long = Path("/content/drive/MyDrive/tesi_swgo_2025/tesi-pmt-gain_characterization/data/batch_3/single_photoelectron/2025_04_10/run_spe_v_1450_pol_90_whe_10_8_win_130")
+    spe_data_long = Path("/content/drive/MyDrive/tesi_swgo_2025/tesi-pmt-gain_characterization/data/batch_3/single_photoelectron/2025_04_10")
 
 
     for data_file in spe_data_long.rglob("*.csv"):
@@ -241,7 +241,7 @@ def GUADAGNO():
     info_gaudagno = {}
 
 
-    guadagno_data = Path("/content/drive/MyDrive/tesi_swgo_2025/tesi-pmt-gain_characterization/data/batch_3/gain_curve/2025_04_10/run_gain_800_1450_pol_75_whe_9_9_win_130_thr_400")
+    guadagno_data = Path("/content/drive/MyDrive/tesi_swgo_2025/tesi-pmt-gain_characterization/data/batch_3/gain_curve/2025_04_10")
 
     for data_file in guadagno_data.rglob("*.csv"):
 
