@@ -1,4 +1,9 @@
-import ROOT                                                
+import ROOT                 
+from IPython.display import Image, display
+
+# Impedisce a ROOT di aprire finestre GUI (utile in Colab)
+ROOT.gROOT.SetBatch(True)
+
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -16,6 +21,7 @@ CARICA_ELETTRONE=1.6*10**-7 #in pC
 ROOT.gStyle.SetOptFit(1111)
 CHANNELS = range(7)
 
+pedestal= [882.91, 886.25, 887.94, 882.36, 880.55, 887.07, 883.53]
 
 def ped(x, par):                                                
     gauss0 = par[0]*np.exp(-0.5*((x[0])/par[1])**2)
@@ -35,16 +41,94 @@ def double_gaus(x, par):
     return float(gauss0+gauss1)
 
 
-                               
+def PEDESTAL():               
 
+    info_pedestal = {}
+    hist_list = [] 
 
+    pedestal_data = Path("/content/drive/MyDrive/tesi_swgo_2025/tesi-pmt-gain_characterization/data/batch_3/pedestal_characterization/2025_04_09/acq_1")   
+    print("Directory pedestal:", pedestal_data)                     
+
+    # Prepariamo il fit gaussiano
+    fit_ped = ROOT.TF1("f", "gaus", 875, 895, 3)                      
+    fit_ped.SetParNames("A", "mu", "sigma")
+
+    # Lista per accumulare tutti i CSV
+    df_list = []
+    for data_file in pedestal_data.rglob("*.csv"):
+        print("Caricamento file:", data_file)
+        df_list.append(pd.read_csv(data_file))
+
+    # Verifica che ci siano file
+    if not df_list:
+        raise FileNotFoundError(f"Nessun file CSV trovato in {pedestal_data}")
+
+    # Concatenazione di tutti i CSV in un unico DataFrame
+    df = pd.concat(df_list, ignore_index=True)
+
+    # Canvas ROOT per il plot
+    canvas = ROOT.TCanvas("a", "Multi-Channel Histogram Pedestal", 1800, 1000)          
+    canvas.Divide(3, 3)                                                        
+
+    for channel in CHANNELS:                                                        
+
+        hist = ROOT.TH1D(f"hist_ch{channel}_pedestal", f"Channel {channel}", 30, 870, 900)    
+        hist_list.append(hist)     
+
+        energy_values = df[df["Channel"] == channel]["Energy"].values
+
+        for ener in energy_values:                                                   
+            hist.Fill(ener)                                                         
+  
+        print("Pedestal Channel:", channel)
+
+        canvas.cd(channel+1)
+        hist.SetLineColor(ROOT.kBlue)
+        hist.SetFillColorAlpha(ROOT.kBlue, 0.3)
+
+        entries = hist.GetEntries()
+        mean    = hist.GetMean()
+        std_dev = hist.GetStdDev()
+        k = 4
+    
+        fit_ped.SetParameters(int(entries/100), mean, std_dev)
+        fit_ped.SetRange(mean - k*std_dev, mean + k*std_dev)
+
+        hist.Fit(fit_ped, "RL")
+        n_ped = fit_ped.GetParameter(0)
+        mu_ped = fit_ped.GetParameter(1)
+        sigma_ped = fit_ped.GetParameter(2)
+
+        print(f"A: {n_ped}, mu: {mu_ped}, sigma: {sigma_ped}")
+    
+        hist.Draw() 
+        info_pedestal[channel] = mu_ped
+        
+            # Mostra grafico in Colab
+        canvas_channel = ROOT.TCanvas(f"c_ped_{channel}", f"Channel {channel}", 800, 600)
+        hist.Draw()
+        fit_ped.Draw("same")
+        filename = f"pedestal_ch{channel}.png"
+        canvas_channel.SaveAs(filename)
+        display(Image(filename))
+
+    canvas.Modified() 
+    canvas.Update()
+
+    print(f"I valori medi dei piedistalli: {info_pedestal}")
+    print("Press any key to stop the program...")
+    input()
+
+    return info_pedestal                           
+
+'''
 def PEDESTAL():               
 
 
     info_pedestal = {}
     hist_list = [] 
 
-    pedestal_data = Path("/content/drive/MyDrive/tesi_swgo_2025/tesi-pmt-gain_characterization/data/batch_3/pedestal_characterisation/2025_04_09/acq_1")   
+    pedestal_data = Path("/content/drive/MyDrive/tesi_swgo_2025/tesi-pmt-gain_characterization/data/batch_3/pedestal_characterization/2025_04_09/acq_1")   
     print(pedestal_data)                     
 
     fit_ped = ROOT.TF1("f", "gaus", 875, 895, 3)                      
@@ -111,8 +195,7 @@ def PEDESTAL():
     input()
 
     return info_pedestal
-
-
+'''
 
 
 
@@ -220,6 +303,14 @@ def SPE(pedestal_values):
 
         valore = format((fit_function.GetParameter(3) * CALIBRAZIONE_ADC)/ CARICA_ELETTRONE, ".2e")
         guadagno.append(valore)
+        
+        # ---------------------- NUOVO ----------------------
+        canvas_channel = ROOT.TCanvas(f"c_spe_{channel}", f"SPE Channel {channel}", 800, 600)
+        hist.Draw()
+        fit_function.Draw("same")
+        filename = f"spe_ch{channel}.png"
+        canvas_channel.SaveAs(filename)
+        display(Image(filename))
 
     
     print(guadagno)  
@@ -235,9 +326,9 @@ def SPE(pedestal_values):
 
 
 
+'''
 
-
-def GUADAGNO():
+def GUADAGNO(pedestal_values):
     info_gaudagno = {}
 
 
@@ -270,7 +361,7 @@ def GUADAGNO():
                 print(channel_data)
 
                 for ener in channel_data.values:
-                    hist.Fill(ener-pedestal_values_after_fit[channel])  # ora invece che sottrarre i valori dei piedistallli definiti nell'array pedestal sottraggo come piedistallo il valore medio dato dai fit gaussiani fatti sulle distribuzioni corrispondenti
+                    hist.Fill(ener-pedestal_values[channel])  
 
                 
                 mean = hist.GetMean()
@@ -288,13 +379,88 @@ def GUADAGNO():
 
                 info_gaudagno[voltage].append((channel, fit_gauss.GetParameter(1)* CALIBRAZIONE_ADC))
                 
-
+                
 
             canvas.cd(channel+1)
             hist.SetLineColor(ROOT.kBlue)
             hist.SetFillColorAlpha(ROOT.kBlue, 0.3)
             hist.Fit(fit_gauss, "R")
+            # ---------------------- NUOVO ----------------------
+            canvas_channel = ROOT.TCanvas(f"c_gain_{voltage}_ch{channel}", f"Gain Ch {channel} V {voltage}", 800, 600)
+            hist.Draw()
+            fit_gauss.Draw("same")
+            filename = f"gain_{voltage}_ch{channel}.png"
+            canvas_channel.SaveAs(filename)
+            display(Image(filename))
             #hist.Draw("")
+
+        canvas.Modified() 
+        canvas.Update()
+        print("Press any key to stop the programm...")
+        input()
+    
+    return info_gaudagno
+'''
+
+def GUADAGNO(pedestal_values):
+    info_gaudagno = {}
+
+    guadagno_data = Path("/content/drive/MyDrive/tesi_swgo_2025/tesi-pmt-gain_characterization/data/batch_3/gain_curve/2025_04_10")
+
+    for data_file in guadagno_data.rglob("*.csv"):
+
+        try:
+            voltage = int(data_file.name.split("_")[-1].split(".")[0])
+        except:
+            print("Impossibile recuperare il valore della tensione")
+            return
+
+        canvas = ROOT.TCanvas(f"{voltage}", f"Multi-Channel Histogram- V {voltage}", 1800, 1000)
+        canvas.Divide(3, 3)
+
+        hist_list = []
+        print(voltage)
+        
+        df = pd.read_csv(data_file)
+
+        for channel in CHANNELS:
+
+            hist = ROOT.TH1D(f"hist_ch{channel}_v_{voltage}", f"Channel {channel} ", 1000, 0, 16000)
+            hist_list.append(hist)
+
+            channel_data = df[df["Channel"] == channel]["Energy"]
+
+            if not channel_data.empty:
+                print(channel_data)
+
+                for ener in channel_data.values:
+                    hist.Fill(ener-pedestal_values[channel])  
+
+                mean = hist.GetMean()
+                sigma = hist.GetRMS()
+                amplitude = int(hist.GetEntries()/10)
+                min_value = mean - 5*sigma
+                max_value = mean + 5*sigma
+                hist.SetAxisRange(min_value, max_value, "X")
+
+                fit_gauss = ROOT.TF1("f", "gaus", min_value, max_value, 3)
+                fit_gauss.SetParameters(amplitude, mean, sigma)
+
+                if voltage not in info_gaudagno:
+                    info_gaudagno[voltage] = []  
+
+                hist.Fit(fit_gauss, "R")
+                info_gaudagno[voltage].append((channel, fit_gauss.GetParameter(1)* CALIBRAZIONE_ADC))
+                
+                # ---------------------- NUOVO ----------------------
+                canvas_channel = ROOT.TCanvas(f"c_gain_{voltage}_ch{channel}", f"Gain Ch {channel} V {voltage}", 800, 600)
+                hist.SetLineColor(ROOT.kBlue)
+                hist.SetFillColorAlpha(ROOT.kBlue, 0.3)
+                hist.Draw()
+                fit_gauss.Draw("same")
+                filename = f"gain_{voltage}_ch{channel}.png"
+                canvas_channel.SaveAs(filename)
+                display(Image(filename))
 
         canvas.Modified() 
         canvas.Update()
@@ -307,13 +473,10 @@ def GUADAGNO():
 
 
 
-
-
-
-def GAIN_CURVE():
+def GAIN_CURVE(pedestal_values):
     #ROOT.gROOT.SetBatch(True)
-    carica_spe = SPE()
-    carica_raw = GUADAGNO()
+    carica_spe = SPE(pedestal_values)
+    carica_raw = GUADAGNO(pedestal_values)
     #ROOT.gROOT.SetBatch(False)
 
 
@@ -397,13 +560,55 @@ def GAIN_CURVE():
         linea.SetLineColor(ROOT.kBlue)  
         linea.SetLineWidth(2)
         linea.Draw("same")
+        
+        
+        
+        
+        canvas_channel = ROOT.TCanvas(f"c_gain_curve_ch{channel}", f"Gain Curve Channel {channel}", 800, 600)
+        ROOT.gPad.SetLogy(1)
+        graph.Draw("AP")
+        power.Draw("same")
+        linea.Draw("same")
+        
+        # Creo e disegno vertical_line SOLO DOPO averla definita
+        vertical_line = ROOT.TLine(intersezione, 1e6, intersezione, 1e7)
+        vertical_line.SetLineColor(ROOT.kGreen)
+        vertical_line.SetLineWidth(2)
+        vertical_line.Draw("same")
+        vertical_lines.append(vertical_line)
+        
+        filename = f"gain_curve_ch{channel}.png"
+        canvas_channel.SaveAs(filename)
+        display(Image(filename))
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    '''
+        canvas_channel = ROOT.TCanvas(f"c_gain_curve_ch{channel}", f"Gain Curve Channel {channel}", 800, 600)
+        ROOT.gPad.SetLogy(1)
+        graph.Draw("AP")
+        power.Draw("same")
+        linea.Draw("same")
+        vertical_line.Draw("same")
+        filename = f"gain_curve_ch{channel}.png"
+        canvas_channel.SaveAs(filename)
+        display(Image(filename))
 
         vertical_line = ROOT.TLine(intersezione, 1e6, intersezione, 1e7)
         vertical_lines.append(vertical_line)
         vertical_line.SetLineColor(ROOT.kGreen)
         vertical_line.SetLineWidth(2)
         vertical_line.Draw("same")
-    
+   '''
+   
     canvas.Modified() 
     canvas.Update()
     print("Press any key to stop the programm...")
@@ -421,8 +626,8 @@ if __name__ == '__main__':
     #a = SPE()
     # print(a)
 
-    piedistallo = PEDESTAL() 
-    SPE(piedistallo)
+    piedistallo = PEDESTAL()
+    GAIN_CURVE(piedistallo)
     #SPE()       
     #GUADAGNO()
     #PEDESTAL()
