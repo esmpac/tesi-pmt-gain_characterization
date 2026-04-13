@@ -369,8 +369,6 @@ def SPE(pedestal_values):
 # the mean collected charge at different applied voltages
 # in the range 900–1500 V, after pedestal subtraction.
 # ============================================================
-
-
 def GUADAGNO(pedestal_values):
     info_gaudagno = {}
 
