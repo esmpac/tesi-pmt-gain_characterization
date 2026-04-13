@@ -138,6 +138,18 @@ The pipeline allows estimation of:
 
 ---
 
+
+## Acknowledgements
+
+The analysis framework is based on a pre-existing software structure developed within the SWGO (Southern Wide-field Gamma-ray Observatory) research group at the University of Naples Federico II.research group at the University of Naples Federico II.
+
+During this Bachelor’s thesis work, the pipeline was extended, tested, and adapted for the PMT characterization analysis presented in this project.
+
+I acknowledge the support and guidance of the professors, PhD students, and collaborators involved in the development and maintenance of the original framework.
+
+---
+
 ## Author
 
-Developed and maintained by Erasmo Pacini
+Developed and maintained by Erasmo Pacini  
+Bachelor’s thesis project (BSc in Physics)  
