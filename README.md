@@ -95,7 +95,7 @@ $$
 The PMT gain is expected to follow a power-law dependence on the applied voltage:
 
 $$
-G(V) = A \cdot V^{b}
+G(V) = A \cdot V^{ b }
 $$
 
 where:
@@ -119,10 +119,10 @@ The pipeline allows estimation of:
 
 ## Repository Structure
 
-code/ → main ROOT-based analysis pipeline
-data/ → raw experimental datasets (excluded via .gitignore)
-plots/ → generated figures (gain curves, SPE fits, pedestal distributions)
-root/ → optional ROOT outputs
+- `code/` → main ROOT-based analysis pipeline  
+- `data/` → raw experimental datasets (excluded via `.gitignore`)  
+- `plots/` → generated figures (gain curves, SPE fits, pedestal distributions)  
+- `root/` → optional ROOT outputs  
 
 
 
