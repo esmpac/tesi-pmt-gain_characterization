@@ -74,7 +74,7 @@ $$
 - Empirical fit of gain curve using a power-law model:
 
 $$
-G(V) = A \cdot V^ b
+G(V) = A \cdot V^(b)
 $$
 
 - Extraction of characteristic HV points for each channel
