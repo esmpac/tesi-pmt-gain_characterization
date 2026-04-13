@@ -29,13 +29,21 @@ All raw data are stored in CSV format and processed using ROOT-based histograms.
 ---
 
 ## Requirements
+1. Python version
+- Python 3.9 or higher
 
-- ROOT (v6+)
+2. Python packages
 - numpy
 - pandas
 - pathlib
 - IPython (Jupyter/Colab visualization)
 
+3. Standard libraries (no installation required)
+pathlib
+
+4. ROOT (PyROOT – CERN framework)
+- ROOT v6 or later required
+  
 ---
 
 ## Analysis Pipeline
