@@ -39,7 +39,7 @@ All raw data are stored in CSV format and processed using ROOT-based histograms.
 - IPython (Jupyter/Colab visualization)
 
 3. Standard libraries (no installation required)
-pathlib
+- pathlib
 
 4. ROOT (PyROOT – CERN framework)
 - ROOT v6 or later required
