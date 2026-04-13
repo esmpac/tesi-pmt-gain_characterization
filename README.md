@@ -1,6 +1,7 @@
 # tesi-pmt-gain_characterization
 
 
+
 This project implements a full analysis pipeline for the characterization of Photomultiplier Tubes (PMTs) used in high-energy physics experiments.
 
 The goal is to extract the PMT gain as a function of applied high voltage (HV) through a complete calibration workflow including pedestal subtraction, single-photoelectron (SPE) calibration, and gain curve reconstruction.
@@ -43,31 +44,38 @@ The following software and Python packages are required:
 The analysis is structured into three main stages:
 
 ### 1. Pedestal Estimation
-- Extraction of electronic baseline per channel
-- Gaussian fit of ADC distributions under dark conditions
+
+- Extraction of electronic baseline per channel  
+- Gaussian fit of ADC distributions under dark conditions  
 - Determination of mean pedestal value (μ_ped)
 
+---
+
 ### 2. Single-Photoelectron (SPE) Calibration
-- Pedestal subtraction from low-light data
-- Modeling of charge spectrum using a double-Gaussian function
-- Extraction of SPE mean charge per channel
+
+- Pedestal subtraction from low-light data  
+- Modeling of charge spectrum using a double-Gaussian function  
+- Extraction of SPE mean charge per channel  
 - Conversion from ADC units to physical charge (pC)
 
+---
+
 ### 3. Gain Curve Reconstruction
-- Analysis of charge distributions as a function of high voltage
-- Gaussian fit of high-intensity charge spectra
-- Conversion to number of photoelectrons using SPE calibration
+
+- Analysis of charge distributions as a function of high voltage  
+- Gaussian fit of high-intensity charge spectra  
+- Conversion to number of photoelectrons using SPE calibration  
 - Computation of PMT gain:
 
-\[
+$$
 G(V) = \frac{Q(V)}{N_{pe} \cdot e}
-\]
+$$
 
 - Empirical fit of gain curve using a power-law model:
 
-\[
+$$
 G(V) = A \cdot V^b
-\]
+$$
 
 - Extraction of characteristic HV points for each channel
 
